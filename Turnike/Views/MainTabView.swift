@@ -5,31 +5,31 @@ import SwiftUI
 /// Ana tab navigasyonu — glassmorphism tab bar.
 struct MainTabView: View {
 
-    @State private var selectedTab: Tab = .checkIn
+    @State private var selectedTab: TurnikeTab = .checkIn
     @State private var themeManager = ThemeManager()
     @Namespace private var animation
     var onProfileDeleted: (() -> Void)?
 
-    enum Tab: String, CaseIterable {
+    enum TurnikeTab: String, CaseIterable {
         case checkIn = "check_in"
         case nearby = "nearby"
-        case matches = "matches"
+        case messages = "messages"
         case profile = "profile"
 
         var icon: String {
             switch self {
-            case .checkIn: return "tram"
-            case .nearby:  return "person.2"
-            case .matches: return "heart"
+            case .checkIn: return "location.circle"
+            case .nearby:  return "person.2.wave.2"
+            case .messages: return "message"
             case .profile: return "person.crop.circle"
             }
         }
 
         var title: String {
             switch self {
-            case .checkIn: return "Bin"
-            case .nearby:  return "Yakında"
-            case .matches: return "Eşleşme"
+            case .checkIn: return "Check-in"
+            case .nearby:  return "Yakındakiler"
+            case .messages: return "Mesajlar"
             case .profile: return "Profil"
             }
         }
@@ -46,7 +46,6 @@ struct MainTabView: View {
                         selectedTab = .nearby
                     }
                 case .nearby:
-                    // Placeholder — ViewModel bağlanacak
                     NearbyUsersView(
                         currentLine: themeManager.activeLine,
                         users: [],
@@ -54,8 +53,8 @@ struct MainTabView: View {
                         pendingSyncCount: 0,
                         isConnected: true
                     )
-                case .matches:
-                    matchesPlaceholder
+                case .messages:
+                    MessagesView()
                 case .profile:
                     ProfileView {
                         onProfileDeleted?()
@@ -72,7 +71,7 @@ struct MainTabView: View {
 
     private var glassTabBar: some View {
         HStack(spacing: 0) {
-            ForEach(Tab.allCases, id: \.self) { tab in
+            ForEach(TurnikeTab.allCases, id: \.self) { tab in
                 tabButton(for: tab)
             }
         }
@@ -96,10 +95,10 @@ struct MainTabView: View {
                     .gesture(
                         DragGesture(minimumDistance: 0)
                             .onChanged { value in
-                                let count = CGFloat(Tab.allCases.count)
+                                let count = CGFloat(TurnikeTab.allCases.count)
                                 let index = Int((value.location.x / proxy.size.width) * count)
-                                let safeIndex = max(0, min(Tab.allCases.count - 1, index))
-                                let newTab = Tab.allCases[safeIndex]
+                                let safeIndex = max(0, min(TurnikeTab.allCases.count - 1, index))
+                                let newTab = TurnikeTab.allCases[safeIndex]
                                 
                                 if selectedTab != newTab {
                                     withAnimation(.interactiveSpring(response: 0.25, dampingFraction: 0.65)) {
@@ -114,7 +113,7 @@ struct MainTabView: View {
         .padding(.bottom, 16)
     }
 
-    private func tabButton(for tab: Tab) -> some View {
+    private func tabButton(for tab: TurnikeTab) -> some View {
         let isActive = selectedTab == tab
 
         return VStack(spacing: 4) {
@@ -148,27 +147,32 @@ struct MainTabView: View {
     }
 
     // MARK: - Placeholders
+}
 
-    private var matchesPlaceholder: some View {
+// MARK: - MessagesView
+
+struct MessagesView: View {
+    @Environment(\.themeManager) private var themeManager
+
+    var body: some View {
         ZStack {
             AnimatedMetroBackground(line: themeManager.activeLine)
                 .ignoresSafeArea()
 
             VStack(spacing: 16) {
-                Image(systemName: "heart.circle")
+                Image(systemName: "message.circle.fill")
                     .font(.system(size: 60))
                     .foregroundStyle(themeManager.primaryColor.opacity(0.5))
 
-                Text("Eşleşmeler")
+                Text("Mesajlar")
                     .font(.title2.weight(.bold))
                     .foregroundStyle(.white)
 
-                Text("Eşleşmelerin burada görünecek")
+                Text("Sohbetlerin burada görünecek")
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.5))
             }
         }
     }
-
 }
 
