@@ -7,6 +7,7 @@ struct MainTabView: View {
 
     @State private var selectedTab: Tab = .checkIn
     @State private var themeManager = ThemeManager()
+    @Namespace private var animation
     var onProfileDeleted: (() -> Void)?
 
     enum Tab: String, CaseIterable {
@@ -17,10 +18,10 @@ struct MainTabView: View {
 
         var icon: String {
             switch self {
-            case .checkIn: return "tram.fill"
-            case .nearby:  return "person.2.fill"
-            case .matches: return "heart.fill"
-            case .profile: return "person.crop.circle.fill"
+            case .checkIn: return "tram"
+            case .nearby:  return "person.2"
+            case .matches: return "heart"
+            case .profile: return "person.crop.circle"
             }
         }
 
@@ -77,17 +78,27 @@ struct MainTabView: View {
                 tabButton(for: tab)
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.top, 8)
-        .padding(.bottom, 24)
-        .background { tabBarBackground }
+        .padding(.horizontal, 4)
+        .padding(.vertical, 6)
+        .background {
+            Capsule()
+                .fill(Color(white: 0.12).opacity(0.85)) // Dark glass background
+                .background(
+                    Capsule()
+                        .fill(.ultraThinMaterial)
+                )
+                .shadow(color: .black.opacity(0.5), radius: 15, y: 10)
+                .overlay {
+                    Capsule()
+                        .stroke(Color.white.opacity(0.1), lineWidth: 0.5)
+                }
+        }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 16)
     }
 
     private func tabButton(for tab: Tab) -> some View {
         let isActive = selectedTab == tab
-        let activeColor: Color = themeManager.primaryColor
-        let inactiveIconColor: Color = .white.opacity(0.4)
-        let inactiveTextColor: Color = .white.opacity(0.3)
 
         return Button {
             withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
@@ -95,61 +106,25 @@ struct MainTabView: View {
             }
         } label: {
             VStack(spacing: 4) {
-                Image(systemName: tab.icon)
-                    .font(.system(size: 20, weight: isActive ? .bold : .regular))
-                    .foregroundStyle(isActive ? activeColor : inactiveIconColor)
-                    .scaleEffect(isActive ? 1.15 : 1.0)
+                Image(systemName: isActive ? "\(tab.icon).fill" : tab.icon)
+                    .font(.system(size: 22, weight: isActive ? .semibold : .regular))
+                    .foregroundStyle(isActive ? .white : .white.opacity(0.6))
 
                 Text(tab.title)
-                    .font(.caption2.weight(isActive ? .bold : .regular))
-                    .foregroundStyle(isActive ? activeColor : inactiveTextColor)
-
-                if isActive {
-                    Capsule()
-                        .fill(activeColor)
-                        .frame(width: 20, height: 2)
-                        .transition(.scale)
-                }
+                    .font(.system(size: 10, weight: isActive ? .bold : .medium))
+                    .foregroundStyle(isActive ? .white : .white.opacity(0.6))
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
+            .padding(.vertical, 10)
+            .background {
+                if isActive {
+                    Capsule()
+                        .fill(Color.white.opacity(0.15))
+                        .matchedGeometryEffect(id: "ACTIVE_TAB", in: animation)
+                }
+            }
         }
         .buttonStyle(.plain)
-    }
-
-    @ViewBuilder
-    private var tabBarBackground: some View {
-        let accentColor: Color = themeManager.primaryColor
-
-        ZStack(alignment: .top) {
-            UnevenRoundedRectangle(
-                topLeadingRadius: 24,
-                bottomLeadingRadius: 0,
-                bottomTrailingRadius: 0,
-                topTrailingRadius: 24
-            )
-            .fill(.ultraThinMaterial)
-
-            UnevenRoundedRectangle(
-                topLeadingRadius: 24,
-                bottomLeadingRadius: 0,
-                bottomTrailingRadius: 0,
-                topTrailingRadius: 24
-            )
-            .fill(accentColor.opacity(0.05))
-
-            Rectangle()
-                .fill(
-                    LinearGradient(
-                        colors: [accentColor.opacity(0.3), Color.clear],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .frame(height: 0.5)
-        }
-        .shadow(color: Color.black.opacity(0.3), radius: 20, y: -8)
-        .ignoresSafeArea()
     }
 
     // MARK: - Placeholders
