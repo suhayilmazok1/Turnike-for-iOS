@@ -280,8 +280,13 @@ final class ProfileOnboardingViewModel {
     func loadPhoto(from item: PhotosPickerItem, at index: Int) async {
         guard let data = try? await item.loadTransferable(type: Data.self),
               let image = UIImage(data: data) else { return }
-        imageForCropping = image
-        cropTargetIndex = index
+        // Dikey veya kare fotoğrafları direkt ekle, yatay olanları crop'a gönder
+        if image.size.height >= image.size.width {
+            addPhoto(image, at: index)
+        } else {
+            imageForCropping = image
+            cropTargetIndex = index
+        }
     }
 
     // MARK: - Interests
@@ -347,11 +352,12 @@ final class ProfileOnboardingViewModel {
                     id: userId,
                     displayName: firstName.trimmingCharacters(in: .whitespaces),
                     birthDate: bd,
-                    bio: nil,
+                    bio: bio.isEmpty ? nil : bio,
                     photoUrls: photoFileNames,
                     gender: selectedGender,
                     interests: Array(selectedInterests),
-                    privacyMode: .instant
+                    prompts: prompts.isEmpty ? nil : prompts,
+                    privacyMode: privacyMode
                 )
 
                 try await DatabaseService.shared.createProfile(user)

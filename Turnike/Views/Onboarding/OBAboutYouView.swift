@@ -9,12 +9,12 @@ struct OBAboutYouView: View {
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Seni sen yapan\nşeyler neler?")
+                Text("Seni sen yapan\n\u{015F}eyler neler?")
                     .font(.system(size: 28, weight: .bold))
                     .foregroundStyle(.white)
                     .padding(.top, 32)
 
-                Text("Saklamaya gerek yok. Doğallık çeker.")
+                Text("Saklamaya gerek yok. Do\u{011F}all\u{0131}k \u{00E7}eker.")
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.5))
                     .padding(.top, 6)
@@ -35,6 +35,7 @@ struct OBAboutYouView: View {
             .padding(.horizontal, 24)
             .padding(.bottom, 120)
         }
+        .environment(\.locale, Locale(identifier: "tr_TR"))
     }
 
     // MARK: - Chip Category

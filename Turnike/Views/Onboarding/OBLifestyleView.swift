@@ -10,7 +10,7 @@ struct OBLifestyleView: View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Yaşam tarzın,")
+                    Text("Ya\u{015F}am tarz\u{0131}n,")
                         .font(.system(size: 28, weight: .bold))
                         .foregroundStyle(.white)
                     Text(viewModel.firstName)
@@ -19,7 +19,7 @@ struct OBLifestyleView: View {
                 }
                 .padding(.top, 32)
 
-                Text("Alışkanlıkların uyuşuyor mu? Önce sen başla.")
+                Text("Al\u{0131}\u{015F}kanl\u{0131}klar\u{0131}n uyu\u{015F}uyor mu? \u{00D6}nce sen ba\u{015F}la.")
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.5))
                     .padding(.top, 6)
@@ -40,6 +40,7 @@ struct OBLifestyleView: View {
             .padding(.horizontal, 24)
             .padding(.bottom, 120)
         }
+        .environment(\.locale, Locale(identifier: "tr_TR"))
     }
 
     // MARK: - Chip Category

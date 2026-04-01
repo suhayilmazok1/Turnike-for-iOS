@@ -71,6 +71,7 @@ struct ProfileView: View {
                 }
             }
         }
+        .environment(\.locale, Locale(identifier: "tr_TR"))
     }
 
     // MARK: - Header
@@ -99,7 +100,7 @@ struct ProfileView: View {
             }
 
             Text(user.displayName)
-                .font(.title.weight(.bold))
+                .font(.system(size: 28, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
 
             HStack(spacing: 12) {
@@ -246,16 +247,15 @@ struct ProfileView: View {
             sectionHeader("Gizlilik Modu", icon: "shield.checkered")
 
             HStack(spacing: 12) {
-                let isInstant = { if case .instant = user.privacyMode { return true }; return false }()
-                Image(systemName: isInstant ? "bolt.fill" : "moon.fill")
+                Image(systemName: user.privacyMode == .instant ? "bolt.fill" : "moon.fill")
                     .font(.title3)
-                    .foregroundStyle(isInstant ? .yellow : .purple)
+                    .foregroundStyle(user.privacyMode == .instant ? .yellow : .purple)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(user.privacyMode.displayName)
                         .font(.body.weight(.semibold))
                         .foregroundStyle(.white)
-                    Text(isInstant ? "Bildirimler anında gelir" : "Bildirimler toplu gelir")
+                    Text(user.privacyMode == .instant ? "Bildirimler an\u{0131}nda gelir" : "Bildirimler toplu gelir")
                         .font(.caption)
                         .foregroundStyle(.white.opacity(0.5))
                 }
