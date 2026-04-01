@@ -8,45 +8,61 @@ struct User: Identifiable, Codable, Hashable {
 
     let id: UUID
     var displayName: String
-    var bio: String
-    var age: Int
-    var photoFileNames: [String]
+    var birthDate: Date
+    var bio: String?
+    var photoUrls: [String]?
     var gender: Gender
-    var interests: [String]
-    var prompts: [ProfilePrompt]
+    var interests: [String]?
+    var prompts: [ProfilePrompt]?
     var privacyMode: PrivacyMode
     let createdAt: Date
-    var lastActiveAt: Date
+    
+    // Geçmiş API (yerel depolama) uyumluluğu için computed property
+    var age: Int {
+        Calendar.current.dateComponents([.year], from: birthDate, to: .now).year ?? 0
+    }
 
     /// İlk fotoğrafa kolay erişim (eski API uyumu).
     var primaryPhotoFileName: String? {
-        photoFileNames.first
+        photoUrls?.first
+    }
+    
+    // Supabase tablosu ile birebir eşleşme için CodingKeys
+    enum CodingKeys: String, CodingKey {
+        case id
+        case displayName = "display_name"
+        case birthDate = "birth_date"
+        case gender
+        case bio
+        case interests
+        case photoUrls = "photo_urls"
+        case prompts
+        case privacyMode = "privacy_mode"
+        case createdAt = "created_at"
     }
 
     init(
         id: UUID = UUID(),
         displayName: String,
-        bio: String = "",
-        age: Int,
-        photoFileNames: [String] = [],
+        birthDate: Date,
+        bio: String? = nil,
+        photoUrls: [String]? = nil,
         gender: Gender,
-        interests: [String] = [],
-        prompts: [ProfilePrompt] = [],
+        interests: [String]? = nil,
+        prompts: [ProfilePrompt]? = nil,
         privacyMode: PrivacyMode = .instant,
-        createdAt: Date = .now,
-        lastActiveAt: Date = .now
+        createdAt: Date = .now
     ) {
         self.id = id
         self.displayName = displayName
+        self.birthDate = birthDate
         self.bio = bio
-        self.age = age
-        self.photoFileNames = photoFileNames
+        self.photoUrls = photoUrls
         self.gender = gender
         self.interests = interests
         self.prompts = prompts
         self.privacyMode = privacyMode
         self.createdAt = createdAt
-        self.lastActiveAt = lastActiveAt
     }
 }
 
@@ -125,23 +141,20 @@ enum PredefinedInterest: String, CaseIterable {
 // MARK: - PrivacyMode
 
 /// Kullanıcının bildirim gizlilik tercihi.
-/// - `instant`: Eşleşmeler ve beğeniler anında (duraktayken) bildirim olarak düşer.
-/// - `calm(delayMinutes:)`: Bildirimler check-out sonrası belirli dakika sonra topluca gelir.
-enum PrivacyMode: Codable, Hashable {
-    case instant
-    case calm(delayMinutes: Int)
+/// - `instant`: Eşleşmeler ve anlık bildirimler düşer.
+/// - `calm`: Bildirimler check-out sonrasına ertelenir.
+enum PrivacyMode: String, Codable, Hashable {
+    case instant = "instant"
+    case calm = "calm"
 
     var displayName: String {
         switch self {
         case .instant:
             return "Anlık Mod"
-        case .calm(let minutes):
-            return "Sakin Mod (\(minutes) dk)"
+        case .calm:
+            return "Sakin Mod"
         }
     }
-
-    /// Varsayılan gecikme süresi (dakika).
-    static let defaultCalmDelay: Int = 15
 }
 
 // MARK: - Gender

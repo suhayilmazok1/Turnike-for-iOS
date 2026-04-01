@@ -25,7 +25,9 @@ struct ProfileView: View {
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var editingPhotoIndex: Int?
 
+    @State private var isDeleting = false
     private let storage = ProfileStorageService.shared
+    private let authService = AuthService.shared
 
     var body: some View {
         ZStack {
@@ -51,10 +53,23 @@ struct ProfileView: View {
         }
         .onAppear { loadUserData() }
         .alert("Profili Sil", isPresented: $showDeleteAlert) {
-            Button("Sil", role: .destructive) { deleteProfile() }
+            Button("Sil", role: .destructive) { 
+                Task { await deleteProfile() }
+            }
             Button("Vazgeç", role: .cancel) {}
         } message: {
-            Text("Profilin ve tüm verilerin kalıcı olarak silinecek. Bu işlem geri alınamaz.")
+            Text("Profilin ve tüm verilerin veritabanından KALICI olarak silinecek. Bu işlem geri alınamaz.")
+        }
+        .overlay {
+            if isDeleting {
+                ZStack {
+                    Color.black.opacity(0.5).ignoresSafeArea()
+                    ProgressView("Hesap siliniyor...")
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+            }
         }
     }
 
@@ -124,8 +139,8 @@ struct ProfileView: View {
 
             let columns = [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)]
             LazyVGrid(columns: columns, spacing: 8) {
-                ForEach(0..<min(user.photoFileNames.count, 6), id: \.self) { index in
-                    let fileName = user.photoFileNames[index]
+                ForEach(0..<min(user.photoUrls?.count ?? 0, 6), id: \.self) { index in
+                    let fileName = user.photoUrls![index]
                     if let image = storage.loadPhoto(named: fileName) {
                         Image(uiImage: image)
                             .resizable()
@@ -144,11 +159,11 @@ struct ProfileView: View {
 
     private func bioSection(_ user: User) -> some View {
         Group {
-            if !user.bio.isEmpty {
+            if let bio = user.bio, !bio.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
                     sectionHeader("Hakkında", icon: "text.quote")
 
-                    Text(user.bio)
+                    Text(bio)
                         .font(.body)
                         .foregroundStyle(.white.opacity(0.85))
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -163,11 +178,11 @@ struct ProfileView: View {
 
     private func promptsSection(_ user: User) -> some View {
         Group {
-            if !user.prompts.isEmpty {
+            if let prompts = user.prompts, !prompts.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
                     sectionHeader("Prompt'lar", icon: "bubble.left.and.bubble.right.fill")
 
-                    ForEach(user.prompts) { prompt in
+                    ForEach(prompts) { prompt in
                         VStack(alignment: .leading, spacing: 4) {
                             Text(prompt.question)
                                 .font(.caption.weight(.semibold))
@@ -194,12 +209,12 @@ struct ProfileView: View {
 
     private func interestsSection(_ user: User) -> some View {
         Group {
-            if !user.interests.isEmpty {
+            if let interests = user.interests, !interests.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
                     sectionHeader("İlgi Alanları", icon: "sparkles")
 
                     FlowLayout(spacing: 8) {
-                        ForEach(user.interests, id: \.self) { interest in
+                        ForEach(interests, id: \.self) { interest in
                             let predefined = PredefinedInterest.allCases.first { $0.rawValue == interest }
                             HStack(spacing: 4) {
                                 if let p = predefined {
@@ -381,7 +396,7 @@ struct ProfileView: View {
                                     editPrivacyMode = .instant
                                 }
                                 privacyOption("Sakin Mod", icon: "moon.fill", isSelected: !isInstantEdit) {
-                                    editPrivacyMode = .calm(delayMinutes: PrivacyMode.defaultCalmDelay)
+                                    editPrivacyMode = .calm
                                 }
                             }
                         }
@@ -469,13 +484,13 @@ struct ProfileView: View {
     private func startEditing() {
         guard let user = user else { return }
         editName = user.displayName
-        editBio = user.bio
+        editBio = user.bio ?? ""
         editGender = user.gender
         editPrivacyMode = user.privacyMode
-        editInterests = Set(PredefinedInterest.allCases.filter { user.interests.contains($0.rawValue) })
+        editInterests = Set(PredefinedInterest.allCases.filter { user.interests?.contains($0.rawValue) == true })
 
-        // Yaştan doğum tarihi hesapla (yaklaşık)
-        editBirthDate = Calendar.current.date(byAdding: .year, value: -user.age, to: .now) ?? .now
+        // birthDate'den doğum tarihi al
+        editBirthDate = user.birthDate
 
         isEditing = true
     }
@@ -488,18 +503,31 @@ struct ProfileView: View {
         updated.interests = editInterests.map(\.rawValue)
         updated.privacyMode = editPrivacyMode
 
-        let age = Calendar.current.dateComponents([.year], from: editBirthDate, to: .now).year ?? 0
-        updated.age = age
+        updated.birthDate = editBirthDate
 
         storage.saveProfile(updated)
         user = updated
         isEditing = false
     }
 
-    private func deleteProfile() {
-        storage.clearProfile()
-        user = nil
-        onProfileDeleted?()
+    private func deleteProfile() async {
+        isDeleting = true
+        do {
+            try await authService.deleteAccount()
+            // Yerele kaydettiğimiz önbelleği de temizliyoruz
+            storage.clearProfile()
+            
+            await MainActor.run {
+                user = nil
+                isDeleting = false
+                onProfileDeleted?()
+            }
+        } catch {
+            print("Hesap silinirken hata oldu: \(error)")
+            await MainActor.run {
+                isDeleting = false
+            }
+        }
     }
 
     private func initials(from name: String) -> String {

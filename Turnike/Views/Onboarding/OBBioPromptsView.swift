@@ -1,17 +1,25 @@
 import SwiftUI
 
-// MARK: - OnboardingBioPromptsView
+// MARK: - OBBioPromptsView
 
-/// Bio ve prompt yanıtları.
-struct OnboardingBioPromptsView: View {
+struct OBBioPromptsView: View {
 
     @Bindable var viewModel: ProfileOnboardingViewModel
     @FocusState private var isBioFocused: Bool
     @FocusState private var isPromptFocused: Bool
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Kendinden bahset")
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundStyle(.white)
+                    .padding(.top, 32)
+
+                Text("Profilini daha ilgi çekici yap.")
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.5))
+                    .padding(.top, 6)
 
                 // MARK: - Bio
                 VStack(alignment: .leading, spacing: 10) {
@@ -47,16 +55,14 @@ struct OnboardingBioPromptsView: View {
                                 viewModel.bio = String(newValue.prefix(300))
                             }
                         }
-
-
                 }
-                .padding(.horizontal, 20)
+                .padding(.top, 24)
 
                 // Ayırıcı
                 Rectangle()
                     .fill(.white.opacity(0.1))
                     .frame(height: 1)
-                    .padding(.horizontal, 20)
+                    .padding(.vertical, 20)
 
                 // MARK: - Prompts
                 VStack(alignment: .leading, spacing: 14) {
@@ -72,8 +78,6 @@ struct OnboardingBioPromptsView: View {
                             .foregroundStyle(.white.opacity(0.4))
                     }
 
-
-
                     // Mevcut prompt'lar
                     ForEach(Array(viewModel.prompts.enumerated()), id: \.element.id) { index, prompt in
                         promptCard(prompt, at: index)
@@ -84,10 +88,9 @@ struct OnboardingBioPromptsView: View {
                         addPromptSection
                     }
                 }
-                .padding(.horizontal, 20)
             }
-            .padding(.top, 8)
-            .padding(.bottom, 100)
+            .padding(.horizontal, 24)
+            .padding(.bottom, 120)
         }
     }
 
@@ -118,7 +121,14 @@ struct OnboardingBioPromptsView: View {
                 .foregroundStyle(.white.opacity(0.9))
         }
         .padding(14)
-        .glass(cornerRadius: 14, opacity: 0.12)
+        .background {
+            RoundedRectangle(cornerRadius: 14)
+                .fill(.white.opacity(0.08))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(.white.opacity(0.1), lineWidth: 1)
+                }
+        }
         .transition(.scale.combined(with: .opacity))
     }
 
@@ -178,6 +188,13 @@ struct OnboardingBioPromptsView: View {
             }
         }
         .padding(14)
-        .glass(cornerRadius: 14, opacity: 0.08)
+        .background {
+            RoundedRectangle(cornerRadius: 14)
+                .fill(.white.opacity(0.06))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(.white.opacity(0.08), lineWidth: 1)
+                }
+        }
     }
 }

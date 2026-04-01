@@ -319,7 +319,7 @@ struct CheckInView: View {
                     isSelected: !isInstantMode,
                     line: line
                 ) {
-                    privacyMode = .calm(delayMinutes: PrivacyMode.defaultCalmDelay)
+                    privacyMode = .calm
                 }
 
                 // Onayla butonu

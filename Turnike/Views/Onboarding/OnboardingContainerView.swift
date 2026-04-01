@@ -2,41 +2,65 @@ import SwiftUI
 
 // MARK: - OnboardingContainerView
 
-/// Tinder/Bumble ilhamlı adım adım profil oluşturma akışı.
+/// Tinder/Hinge tarzı adım adım profil oluşturma akışı.
 struct OnboardingContainerView: View {
 
     @State private var viewModel = ProfileOnboardingViewModel()
     var onComplete: () -> Void
 
+    // Gradient renkleri (pembe → mavi)
+    private let progressGradient = LinearGradient(
+        colors: [
+            Color(red: 215/255, green: 130/255, blue: 165/255),
+            Color(red: 110/255, green: 155/255, blue: 200/255)
+        ],
+        startPoint: .leading,
+        endPoint: .trailing
+    )
+
+    // Hangi adımlar "Skip" edilebilir
+    private var canSkip: Bool {
+        switch viewModel.currentStep {
+        case .lifestyle, .aboutYou, .bioPrompts: return true
+        default: return false
+        }
+    }
+
     var body: some View {
         ZStack {
-            // Dinamik arka plan
-            AnimatedMetroBackground(line: .m2)
+            // Koyu arka plan
+            Color(red: 20/255, green: 20/255, blue: 30/255)
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // MARK: - Header
-                if viewModel.currentStep != .welcome {
-                    onboardingHeader
-                }
+                // MARK: - Top Bar (Progress + Back + Skip)
+                topBar
 
                 // MARK: - Content
                 Group {
                     switch viewModel.currentStep {
-                    case .welcome:
-                        OnboardingWelcomeView {
-                            viewModel.goNext()
-                        }
-                    case .nameAge:
-                        OnboardingNameAgeView(viewModel: viewModel)
-                    case .photos:
-                        OnboardingPhotosView(viewModel: viewModel)
-                    case .bioPrompts:
-                        OnboardingBioPromptsView(viewModel: viewModel)
+                    case .firstName:
+                        OBFirstNameView(viewModel: viewModel)
+                    case .phone:
+                        OBPhoneView(viewModel: viewModel)
+                    case .birthday:
+                        OBBirthdayView(viewModel: viewModel)
+                    case .gender:
+                        OBGenderView(viewModel: viewModel)
+                    case .lookingFor:
+                        OBLookingForView(viewModel: viewModel)
+                    case .lifestyle:
+                        OBLifestyleView(viewModel: viewModel)
+                    case .aboutYou:
+                        OBAboutYouView(viewModel: viewModel)
                     case .interests:
-                        OnboardingInterestsView(viewModel: viewModel)
+                        OBInterestsView(viewModel: viewModel)
+                    case .bioPrompts:
+                        OBBioPromptsView(viewModel: viewModel)
                     case .privacyMode:
-                        OnboardingPrivacyView(viewModel: viewModel)
+                        OBPrivacyModeView(viewModel: viewModel)
+                    case .photos:
+                        OBPhotosView(viewModel: viewModel)
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -46,65 +70,77 @@ struct OnboardingContainerView: View {
                 ))
 
                 // MARK: - Bottom Bar
-                if viewModel.currentStep != .welcome {
-                    bottomBar
-                }
+                bottomBar
             }
         }
-        .animation(.spring(response: 0.5, dampingFraction: 0.85), value: viewModel.currentStep)
+        .animation(.spring(response: 0.4, dampingFraction: 0.9), value: viewModel.currentStep)
         .preferredColorScheme(.dark)
     }
 
-    // MARK: - Header
+    // MARK: - Top Bar
 
-    private var onboardingHeader: some View {
-        VStack(spacing: 12) {
+    private var topBar: some View {
+        VStack(spacing: 0) {
+            // Gradient Progress Bar
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    // Background track
+                    Capsule()
+                        .fill(.white.opacity(0.1))
+                        .frame(height: 4)
+
+                    // Fill
+                    Capsule()
+                        .fill(progressGradient)
+                        .frame(width: geo.size.width * viewModel.currentStep.progress, height: 4)
+                        .animation(.spring(response: 0.5), value: viewModel.currentStep)
+                }
+            }
+            .frame(height: 4)
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+
+            // Geri + Skip
             HStack {
-                // Geri butonu
-                Button {
-                    viewModel.goBack()
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.title3.weight(.semibold))
-                        .foregroundStyle(.white)
-                        .frame(width: 40, height: 40)
-                        .glass(cornerRadius: 12, opacity: 0.2)
+                // Geri butonu (ilk adımda çıkış)
+                if viewModel.currentStep.rawValue > 0 {
+                    Button {
+                        viewModel.goBack()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.title3.weight(.semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 40, height: 40)
+                    }
+                } else {
+                    // İlk adımda çıkış butonu
+                    Button {
+                        Task {
+                            try? await AuthService.shared.signOut()
+                        }
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.title3.weight(.semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 40, height: 40)
+                    }
                 }
 
                 Spacer()
 
-                // İlerleme göstergesi
-                progressDots
-
-                Spacer()
-
-                // Boşluk (simetri)
-                Color.clear.frame(width: 40, height: 40)
+                // Skip butonu
+                if canSkip {
+                    Button {
+                        viewModel.skipStep()
+                    } label: {
+                        Text("Geç")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.white.opacity(0.6))
+                    }
+                }
             }
-            .padding(.horizontal, 20)
-
-            Text(viewModel.currentStep.title)
-                .font(.title2.weight(.bold))
-                .foregroundStyle(.white)
-
-            Text(viewModel.currentStep.subtitle)
-                .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.6))
-        }
-        .padding(.top, 8)
-        .padding(.bottom, 12)
-    }
-
-    private var progressDots: some View {
-        HStack(spacing: 6) {
-            ForEach(OnboardingStep.allCases, id: \.self) { step in
-                Capsule()
-                    .fill(step.rawValue <= viewModel.currentStep.rawValue
-                          ? Color.cyan
-                          : Color.white.opacity(0.2))
-                    .frame(width: step == viewModel.currentStep ? 24 : 8, height: 4)
-                    .animation(.spring(response: 0.3), value: viewModel.currentStep)
-            }
+            .padding(.horizontal, 16)
+            .padding(.top, 4)
         }
     }
 
@@ -112,27 +148,62 @@ struct OnboardingContainerView: View {
 
     private var bottomBar: some View {
         VStack(spacing: 0) {
-            if viewModel.currentStep == .privacyMode {
-                // Son adım — Tamamla butonu
-                GlowButton("Profili Tamamla ✨", icon: "checkmark.circle.fill", color: .cyan) {
+            // Lifestyle / About You: "Next X / 4" counter
+            if viewModel.currentStep == .lifestyle {
+                counterText("Sonraki \(viewModel.answeredLifestyleCount) / 4")
+            } else if viewModel.currentStep == .aboutYou {
+                counterText("Sonraki \(viewModel.answeredAboutYouCount) / 4")
+            }
+
+            // Son adımda "Profili Tamamla" butonu
+            if viewModel.currentStep == .photos {
+                Button {
                     viewModel.completeOnboarding()
                     withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                         onComplete()
                     }
+                } label: {
+                    nextButtonLabel("Profili Tamamla ✨")
                 }
+                .disabled(!viewModel.canProceed || viewModel.isCompleting)
                 .opacity(viewModel.canProceed ? 1 : 0.5)
-                .disabled(!viewModel.canProceed)
+                .padding(.horizontal, 24)
                 .padding(.bottom, 32)
             } else {
-                // Devam butonu
-                GlowButton("Devam Et", icon: "arrow.right", color: .cyan) {
+                // Normal "Sonraki" butonu
+                Button {
                     viewModel.goNext()
+                } label: {
+                    nextButtonLabel("Sonraki")
                 }
-                .opacity(viewModel.canProceed ? 1 : 0.5)
                 .disabled(!viewModel.canProceed)
-                .padding(.bottom, 32)
+                .opacity(viewModel.canProceed ? 1 : 0.5)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 16)
             }
         }
-        .padding(.horizontal, 20)
+    }
+
+    // MARK: - Helpers
+
+    private func nextButtonLabel(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 17, weight: .bold))
+            .foregroundStyle(viewModel.canProceed ? .black : .white.opacity(0.5))
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 16)
+            .background {
+                Capsule()
+                    .fill(viewModel.canProceed
+                        ? AnyShapeStyle(.white)
+                        : AnyShapeStyle(.white.opacity(0.1)))
+            }
+    }
+
+    private func counterText(_ text: String) -> some View {
+        Text(text)
+            .font(.caption.weight(.medium))
+            .foregroundStyle(.white.opacity(0.4))
+            .padding(.bottom, 8)
     }
 }

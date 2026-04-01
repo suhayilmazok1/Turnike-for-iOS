@@ -59,8 +59,8 @@ struct UserCardView: View {
             // MARK: - Detaylar
             VStack(spacing: 12) {
                 // Bio
-                if !user.bio.isEmpty {
-                    Text(user.bio)
+                if let bio = user.bio, !bio.isEmpty {
+                    Text(bio)
                         .font(.body)
                         .foregroundStyle(.white.opacity(0.85))
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -106,10 +106,10 @@ struct UserCardView: View {
                 }
 
                 // İlgi alanları
-                if !user.interests.isEmpty {
+                if let interests = user.interests, !interests.isEmpty {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 6) {
-                            ForEach(user.interests, id: \.self) { interest in
+                            ForEach(interests, id: \.self) { interest in
                                 Text(interest)
                                     .font(.caption.weight(.medium))
                                     .foregroundStyle(.white.opacity(0.9))

@@ -7,97 +7,231 @@ import UIKit
 // MARK: - OnboardingStep
 
 enum OnboardingStep: Int, CaseIterable {
-    case welcome = 0
-    case nameAge = 1
-    case photos = 2
-    case bioPrompts = 3
-    case interests = 4
-    case privacyMode = 5
+    case firstName = 0
+    case phone = 1
+    case birthday = 2
+    case gender = 3
+    case lookingFor = 4
+    case lifestyle = 5
+    case aboutYou = 6
+    case interests = 7
+    case bioPrompts = 8
+    case privacyMode = 9
+    case photos = 10
 
-    var title: String {
-        switch self {
-        case .welcome:     return "Hoş Geldin!"
-        case .nameAge:     return "Kendini Tanıt"
-        case .photos:      return "Fotoğrafların"
-        case .bioPrompts:  return "Hakkında"
-        case .interests:   return "İlgi Alanların"
-        case .privacyMode: return "Gizlilik Modu"
-        }
+    var progress: Double {
+        Double(rawValue + 1) / Double(Self.allCases.count)
     }
+}
 
-    var subtitle: String {
+// MARK: - LookingFor Option
+
+enum LookingForOption: String, CaseIterable {
+    case longTerm = "Uzun süreli ilişki"
+    case longOpenShort = "Uzun süreli, kısaya açık"
+    case shortOpenLong = "Kısa süreli, uzuna açık"
+    case shortTerm = "Kısa süreli eğlence"
+    case newFriends = "Yeni arkadaşlar"
+    case figuring = "Henüz karar veremedim"
+
+    var emoji: String {
         switch self {
-        case .welcome:     return "Turnike ile metro yolculuğun değişsin"
-        case .nameAge:     return "Temel bilgilerini gir"
-        case .photos:      return "En az 1 fotoğraf ekle"
-        case .bioPrompts:  return "Kendinden biraz bahset"
-        case .interests:   return "En az 3 ilgi alanı seç"
-        case .privacyMode: return "Bildirim tercihini belirle"
+        case .longTerm:       return "💕"
+        case .longOpenShort:  return "😍"
+        case .shortOpenLong:  return "🥂"
+        case .shortTerm:      return "🎉"
+        case .newFriends:     return "👋"
+        case .figuring:       return "🤔"
         }
     }
 }
+
+// MARK: - Lifestyle Categories
+
+struct LifestyleAnswers {
+    var drinking: String = ""
+    var smoking: String = ""
+    var workout: String = ""
+    var pets: String = ""
+}
+
+let lifestyleOptions: [(category: String, icon: String, key: WritableKeyPath<LifestyleAnswers, String>, options: [String])] = [
+    ("Ne sıklıkla içersin?", "🍷", \.drinking,
+     ["İçmem", "Nadiren", "Sosyal içici", "Özel günlerde", "Haftasonları", "Çoğu akşam"]),
+    ("Sigara kullanır mısın?", "🚬", \.smoking,
+     ["İçmem", "Sosyal içici", "İçerken içerim", "Bırakmaya çalışıyorum", "İçerim"]),
+    ("Spor yapar mısın?", "💪", \.workout,
+     ["Her gün", "Sık sık", "Bazen", "Nadiren", "Hiç"]),
+    ("Evcil hayvanın var mı?", "🐾", \.pets,
+     ["Kedi", "Köpek", "Her ikisi", "Sürüngen", "Kuş", "Balık", "Yok ama isterim", "Yok"]),
+]
+
+// MARK: - About You Categories
+
+struct AboutYouAnswers {
+    var communication: String = ""
+    var loveLanguage: String = ""
+    var education: String = ""
+    var zodiac: String = ""
+}
+
+let aboutYouOptions: [(category: String, icon: String, key: WritableKeyPath<AboutYouAnswers, String>, options: [String])] = [
+    ("İletişim tarzın nedir?", "💬", \.communication,
+     ["Mesajcı", "Telefon", "Video", "Kötü mesajcı", "Yüz yüze"]),
+    ("Sevgi dilin nedir?", "❤️", \.loveLanguage,
+     ["Düşünceli jestler", "Hediyeler", "Dokunma", "İltifatlar", "Birlikte vakit"]),
+    ("Eğitim durumun?", "🎓", \.education,
+     ["Lise", "Üniversite", "Yüksek Lisans", "Doktora", "Meslek Yüksekokulu"]),
+    ("Burcun ne?", "⭐", \.zodiac,
+     ["Koç", "Boğa", "İkizler", "Yengeç", "Aslan", "Başak",
+      "Terazi", "Akrep", "Yay", "Oğlak", "Kova", "Balık"]),
+]
+
+// MARK: - Interest Categories
+
+struct InterestCategory: Identifiable {
+    let id = UUID()
+    let name: String
+    let emoji: String
+    let items: [String]
+}
+
+let interestCategories: [InterestCategory] = [
+    InterestCategory(name: "Müzik", emoji: "🎵", items: [
+        "Pop", "Rock", "Hip-Hop", "Jazz", "Klasik", "R&B",
+        "Elektronik", "K-Pop", "Metal", "Indie", "Türkçe Pop", "Arabesk"
+    ]),
+    InterestCategory(name: "Doğa & Macera", emoji: "🏔️", items: [
+        "Yürüyüş", "Kamp", "Dalış", "Tırmanış", "Sörf",
+        "Kayak", "Seyahat", "Fotoğrafçılık", "Bisiklet"
+    ]),
+    InterestCategory(name: "Sosyal & İçerik", emoji: "📱", items: [
+        "Instagram", "X", "TikTok", "Spotify", "YouTube",
+        "Podcast", "Blog", "Pinterest", "Twitch"
+    ]),
+    InterestCategory(name: "Spor & Fitness", emoji: "⚽", items: [
+        "Futbol", "Basketbol", "Tenis", "Koşu", "Yoga",
+        "Pilates", "Yüzme", "Fitness", "Boks", "Dans"
+    ]),
+    InterestCategory(name: "Ev Keyfi", emoji: "🏠", items: [
+        "Okuma", "Ev Egzersizi", "Dizi Maratonu", "Yemek Yapma",
+        "Bahçecilik", "Kutu Oyunları", "Bilgi Yarışması", "Puzzle"
+    ]),
+    InterestCategory(name: "Film & TV", emoji: "🎬", items: [
+        "Aksiyon", "Animasyon", "Suç", "Fantastik",
+        "Belgesel", "Drama", "Komedi", "Korku", "Bilim Kurgu"
+    ]),
+    InterestCategory(name: "Oyun", emoji: "🎮", items: [
+        "PC Gaming", "Konsol", "Mobil Oyun", "Board Games",
+        "RPG", "FPS", "Strateji", "E-Spor"
+    ]),
+    InterestCategory(name: "Yeme & İçme", emoji: "🍕", items: [
+        "Kahve", "Çay", "Şarap", "Kokteyl", "Sokak Lezzetleri",
+        "Fine Dining", "Vegan", "Tatlıcı", "Barbekü"
+    ]),
+]
 
 // MARK: - ProfileOnboardingViewModel
 
 @Observable
 final class ProfileOnboardingViewModel {
 
-    // MARK: - State
+    // MARK: - Navigation State
+    var currentStep: OnboardingStep = .firstName
 
-    var currentStep: OnboardingStep = .welcome
+    // Step 1: First Name
+    var firstName: String = ""
 
-    // Step 2: Name / Age / Gender
-    var displayName: String = ""
-    var birthDate: Date = Calendar.current.date(byAdding: .year, value: -22, to: .now) ?? .now
+    // Step 2: Phone
+    var phoneNumber: String = ""
+
+    // Step 3: Birthday
+    var birthDay: String = ""
+    var birthMonth: String = ""
+    var birthYear: String = ""
+
+    var birthDate: Date? {
+        guard let d = Int(birthDay), let m = Int(birthMonth), let y = Int(birthYear),
+              d >= 1, d <= 31, m >= 1, m <= 12, y >= 1900, y <= 2010 else { return nil }
+        var comps = DateComponents()
+        comps.day = d; comps.month = m; comps.year = y
+        return Calendar.current.date(from: comps)
+    }
+
+    var age: Int {
+        guard let bd = birthDate else { return 0 }
+        return Calendar.current.dateComponents([.year], from: bd, to: .now).year ?? 0
+    }
+
+    // Step 4: Gender
     var selectedGender: Gender = .preferNotToSay
+    var showGenderOnProfile: Bool = true
 
-    // Step 3: Photos
-    var selectedPhotos: [PhotosPickerItem] = []
-    var photoImages: [UIImage?] = Array(repeating: nil, count: 6)
+    // Step 5: Looking For
+    var lookingFor: LookingForOption? = nil
 
-    // Step 4: Bio & Prompts
+    // Step 6: Lifestyle
+    var lifestyle = LifestyleAnswers()
+    var answeredLifestyleCount: Int {
+        [lifestyle.drinking, lifestyle.smoking, lifestyle.workout, lifestyle.pets]
+            .filter { !$0.isEmpty }.count
+    }
+
+    // Step 7: About You
+    var aboutYou = AboutYouAnswers()
+    var answeredAboutYouCount: Int {
+        [aboutYou.communication, aboutYou.loveLanguage, aboutYou.education, aboutYou.zodiac]
+            .filter { !$0.isEmpty }.count
+    }
+
+    // Step 8: Interests
+    var selectedInterests: Set<String> = []
+
+    // Step 9: Bio & Prompts
     var bio: String = ""
     var prompts: [ProfilePrompt] = []
     var selectedPromptQuestion: String = ProfilePrompt.availableQuestions[0]
     var currentPromptAnswer: String = ""
 
-    // Step 5: Interests
-    var selectedInterests: Set<PredefinedInterest> = []
-
-    // Step 6: Privacy Mode
+    // Step 10: Privacy Mode
     var privacyMode: PrivacyMode = .instant
+
+    // Step 11: Photos
+    var selectedPhotos: [PhotosPickerItem] = []
+    var photoImages: [UIImage?] = Array(repeating: nil, count: 6)
+    var cropTargetIndex: Int? = nil
+    var imageForCropping: UIImage? = nil
 
     // General
     var isCompleting: Bool = false
-
     private let storage = ProfileStorageService.shared
-
-    // MARK: - Computed Age
-
-    var age: Int {
-        Calendar.current.dateComponents([.year], from: birthDate, to: .now).year ?? 0
-    }
-
-    var ageString: String {
-        "\(age)"
-    }
 
     // MARK: - Validation
 
     var canProceed: Bool {
         switch currentStep {
-        case .welcome:
-            return true
-        case .nameAge:
-            return !displayName.trimmingCharacters(in: .whitespaces).isEmpty && age >= 18 && age <= 99
-        case .photos:
-            return photoImages.compactMap({ $0 }).count >= 1
-        case .bioPrompts:
-            return true // Opsiyonel
+        case .firstName:
+            return !firstName.trimmingCharacters(in: .whitespaces).isEmpty
+        case .phone:
+            return phoneNumber.count >= 10
+        case .birthday:
+            return birthDate != nil && age >= 18 && age <= 99
+        case .gender:
+            return selectedGender != .preferNotToSay
+        case .lookingFor:
+            return lookingFor != nil
+        case .lifestyle:
+            return answeredLifestyleCount >= 1
+        case .aboutYou:
+            return true // Skip edilebilir
         case .interests:
             return selectedInterests.count >= 3
+        case .bioPrompts:
+            return true // Opsiyonel
         case .privacyMode:
-            return true
+            return true // Varsayılan .instant zaten seçili
+        case .photos:
+            return photoImages.compactMap({ $0 }).count >= 2
         }
     }
 
@@ -110,7 +244,7 @@ final class ProfileOnboardingViewModel {
     func goNext() {
         guard canProceed else { return }
         if let nextRaw = OnboardingStep(rawValue: currentStep.rawValue + 1) {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.9)) {
                 currentStep = nextRaw
             }
         }
@@ -118,10 +252,14 @@ final class ProfileOnboardingViewModel {
 
     func goBack() {
         if let prevRaw = OnboardingStep(rawValue: currentStep.rawValue - 1) {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.9)) {
                 currentStep = prevRaw
             }
         }
+    }
+
+    func skipStep() {
+        goNext()
     }
 
     // MARK: - Photo Handling
@@ -134,7 +272,6 @@ final class ProfileOnboardingViewModel {
     func removePhoto(at index: Int) {
         guard index < 6 else { return }
         photoImages[index] = nil
-        // Compact: boşlukları kaldır
         let existing = photoImages.compactMap { $0 }
         photoImages = existing + Array(repeating: nil, count: 6 - existing.count)
     }
@@ -143,7 +280,18 @@ final class ProfileOnboardingViewModel {
     func loadPhoto(from item: PhotosPickerItem, at index: Int) async {
         guard let data = try? await item.loadTransferable(type: Data.self),
               let image = UIImage(data: data) else { return }
-        addPhoto(image, at: index)
+        imageForCropping = image
+        cropTargetIndex = index
+    }
+
+    // MARK: - Interests
+
+    func toggleInterest(_ interest: String) {
+        if selectedInterests.contains(interest) {
+            selectedInterests.remove(interest)
+        } else if selectedInterests.count < 10 {
+            selectedInterests.insert(interest)
+        }
     }
 
     // MARK: - Prompts
@@ -154,7 +302,6 @@ final class ProfileOnboardingViewModel {
         let prompt = ProfilePrompt(question: selectedPromptQuestion, answer: trimmed)
         prompts.append(prompt)
         currentPromptAnswer = ""
-        // Sonraki kullanılmamış soruya geç
         let usedQuestions = Set(prompts.map(\.question))
         if let next = ProfilePrompt.availableQuestions.first(where: { !usedQuestions.contains($0) }) {
             selectedPromptQuestion = next
@@ -175,46 +322,51 @@ final class ProfileOnboardingViewModel {
         prompts.count < 3 && !availablePromptQuestions.isEmpty
     }
 
-    // MARK: - Interests
-
-    func toggleInterest(_ interest: PredefinedInterest) {
-        if selectedInterests.contains(interest) {
-            selectedInterests.remove(interest)
-        } else if selectedInterests.count < 8 {
-            selectedInterests.insert(interest)
-        }
-    }
-
     // MARK: - Complete Onboarding
 
     func completeOnboarding() {
         isCompleting = true
 
-        // Fotoğrafları kaydet
-        var photoFileNames: [String] = []
-        for (index, image) in photoImages.enumerated() {
-            guard let image = image else { continue }
-            if let fileName = storage.savePhoto(image, index: index) {
-                photoFileNames.append(fileName)
+        Task {
+            var photoFileNames: [String] = []
+            for (index, image) in photoImages.enumerated() {
+                guard let image = image else { continue }
+                if let fileName = storage.savePhoto(image, index: index) {
+                    photoFileNames.append(fileName)
+                }
+            }
+
+            do {
+                guard let userId = AuthService.shared.currentUser?.id,
+                      let bd = birthDate else {
+                    await MainActor.run { isCompleting = false }
+                    return
+                }
+
+                let user = User(
+                    id: userId,
+                    displayName: firstName.trimmingCharacters(in: .whitespaces),
+                    birthDate: bd,
+                    bio: nil,
+                    photoUrls: photoFileNames,
+                    gender: selectedGender,
+                    interests: Array(selectedInterests),
+                    privacyMode: .instant
+                )
+
+                try await DatabaseService.shared.createProfile(user)
+
+                await MainActor.run {
+                    storage.saveProfile(user)
+                    storage.markOnboardingComplete()
+                    isCompleting = false
+                }
+            } catch {
+                print("Profil oluşturulurken hata: \(error)")
+                await MainActor.run {
+                    isCompleting = false
+                }
             }
         }
-
-        // User oluştur
-        let user = User(
-            displayName: displayName.trimmingCharacters(in: .whitespaces),
-            bio: bio.trimmingCharacters(in: .whitespaces),
-            age: age,
-            photoFileNames: photoFileNames,
-            gender: selectedGender,
-            interests: selectedInterests.map(\.rawValue),
-            prompts: prompts,
-            privacyMode: privacyMode
-        )
-
-        // Kaydet
-        storage.saveProfile(user)
-        storage.markOnboardingComplete()
-
-        isCompleting = false
     }
 }

@@ -10,3 +10,6 @@ xcuserdata/
 
 # Generated Files
 Turnike.xcodeproj/
+
+# Secrets
+Turnike/Secrets.swift

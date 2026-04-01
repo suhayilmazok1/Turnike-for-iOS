@@ -104,13 +104,15 @@ final class MockAPIClient: APIClient, @unchecked Sendable {
 
     static func generateMockUsers(count: Int) -> [User] {
         (0..<count).map { _ in
-            User(
+            let randomAge = Int.random(in: 20...35)
+            let birthDate = Calendar.current.date(byAdding: .year, value: -randomAge, to: .now) ?? .now
+            return User(
                 displayName: mockNames.randomElement()!,
+                birthDate: birthDate,
                 bio: mockBios.randomElement()!,
-                age: Int.random(in: 20...35),
                 gender: Gender.allCases.randomElement()!,
                 interests: Array(mockInterests.shuffled().prefix(Int.random(in: 2...5))),
-                privacyMode: Bool.random() ? .instant : .calm(delayMinutes: 15)
+                privacyMode: Bool.random() ? .instant : .calm
             )
         }
     }
