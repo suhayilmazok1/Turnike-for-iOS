@@ -142,6 +142,7 @@ struct ImageCropView: View {
     @State private var lastScale: CGFloat = 1.0
     @State private var offset: CGSize = .zero
     @State private var lastOffset: CGSize = .zero
+    @State private var viewSize: CGSize = .zero
 
     // Hedef oran: 9:16 (dikey profil kartı - TikTok/Tinder tarzı)
     private let targetAspect: CGFloat = 9.0 / 16.0
@@ -191,6 +192,8 @@ struct ImageCropView: View {
                         // Grid çizgileri
                         cropGrid(cropWidth: cropWidth, cropHeight: cropHeight)
                     }
+                    .onAppear { viewSize = geo.size }
+                    .onChange(of: geo.size) { _, newSize in viewSize = newSize }
                 }
 
                 // "Tamamını Kullan" butonu alt kısımda
@@ -227,7 +230,8 @@ struct ImageCropView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
-                        onCrop(image)
+                        let cropped = performCrop()
+                        onCrop(cropped)
                         dismiss()
                     } label: {
                         Image(systemName: "checkmark.circle.fill")
@@ -238,6 +242,63 @@ struct ImageCropView: View {
             }
         }
         .preferredColorScheme(.dark)
+    }
+
+    // MARK: - Perform Crop
+
+    private func performCrop() -> UIImage {
+        let viewW = viewSize.width
+        let viewH = viewSize.height
+        guard viewW > 0, viewH > 0 else { return image }
+
+        let cropWidth = viewW * 0.85
+        let cropHeight = cropWidth / targetAspect
+
+        let imgW = image.size.width
+        let imgH = image.size.height
+        let viewAspect = viewW / viewH
+        let imgAspect = imgW / imgH
+
+        let displayW: CGFloat
+        let displayH: CGFloat
+        if imgAspect > viewAspect {
+            displayH = viewH
+            displayW = viewH * imgAspect
+        } else {
+            displayW = viewW
+            displayH = viewW / imgAspect
+        }
+
+        let scaledW = displayW * scale
+        let scaledH = displayH * scale
+
+        let cropCenterX = viewW / 2
+        let cropCenterY = viewH / 2
+
+        let imgCenterX = viewW / 2 + offset.width
+        let imgCenterY = viewH / 2 + offset.height
+
+        let cropLeft = cropCenterX - cropWidth / 2
+        let cropTop = cropCenterY - cropHeight / 2
+
+        let imgLeft = imgCenterX - scaledW / 2
+        let imgTop = imgCenterY - scaledH / 2
+
+        let normX = (cropLeft - imgLeft) / scaledW
+        let normY = (cropTop - imgTop) / scaledH
+        let normW = cropWidth / scaledW
+        let normH = cropHeight / scaledH
+
+        let pixelX = max(0, normX * imgW)
+        let pixelY = max(0, normY * imgH)
+        let pixelW = min(imgW - pixelX, normW * imgW)
+        let pixelH = min(imgH - pixelY, normH * imgH)
+
+        guard pixelW > 0, pixelH > 0 else { return image }
+
+        let cropRect = CGRect(x: pixelX, y: pixelY, width: pixelW, height: pixelH)
+        guard let cgImage = image.cgImage?.cropping(to: cropRect) else { return image }
+        return UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
     }
 
     // MARK: - Crop Overlay
