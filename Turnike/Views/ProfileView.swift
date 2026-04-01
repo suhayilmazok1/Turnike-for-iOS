@@ -26,6 +26,8 @@ struct ProfileView: View {
     @State private var editingPhotoIndex: Int?
 
     @State private var isDeleting = false
+    @State private var selectedPhotoIndex: Int? = nil
+    @State private var photoViewerImages: [UIImage] = []
     private let storage = ProfileStorageService.shared
     private let authService = AuthService.shared
 
@@ -136,24 +138,38 @@ struct ProfileView: View {
 
     private func photosSection(_ user: User) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionHeader("Fotoğraflar", icon: "photo.fill")
+            sectionHeader("Foto\u{011F}raflar", icon: "photo.fill")
 
             let columns = [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)]
             LazyVGrid(columns: columns, spacing: 8) {
                 ForEach(0..<min(user.photoUrls?.count ?? 0, 6), id: \.self) { index in
                     let fileName = user.photoUrls![index]
                     if let image = storage.loadPhoto(named: fileName) {
-                        Image(uiImage: image)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(height: 110)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        Button {
+                            loadPhotoViewerImages(user)
+                            selectedPhotoIndex = index
+                        } label: {
+                            Image(uiImage: image)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(height: 110)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }
         }
         .padding(16)
         .glass(color: theme.primaryColor, cornerRadius: 16, opacity: 0.08)
+        .fullScreenCover(item: Binding(
+            get: { selectedPhotoIndex.map { PhotoViewerIndex(index: $0) } },
+            set: { selectedPhotoIndex = $0?.index }
+        )) { item in
+            PhotoFullScreenViewer(images: photoViewerImages, initialIndex: item.index) {
+                selectedPhotoIndex = nil
+            }
+        }
     }
 
     // MARK: - Bio Section
@@ -533,5 +549,67 @@ struct ProfileView: View {
     private func initials(from name: String) -> String {
         let parts = name.split(separator: " ")
         return parts.compactMap { $0.first }.map(String.init).prefix(2).joined()
+    }
+
+    private func loadPhotoViewerImages(_ user: User) {
+        photoViewerImages = (user.photoUrls ?? []).compactMap { storage.loadPhoto(named: $0) }
+    }
+}
+
+// MARK: - PhotoViewerIndex
+
+struct PhotoViewerIndex: Identifiable {
+    let index: Int
+    var id: Int { index }
+}
+
+// MARK: - PhotoFullScreenViewer
+
+struct PhotoFullScreenViewer: View {
+    let images: [UIImage]
+    let initialIndex: Int
+    var onDismiss: () -> Void
+
+    @State private var currentIndex: Int = 0
+    @GestureState private var dragOffset: CGFloat = 0
+
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+
+            TabView(selection: $currentIndex) {
+                ForEach(0..<images.count, id: \.self) { index in
+                    Image(uiImage: images[index])
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .tag(index)
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: .always))
+
+            // Kapat butonu
+            VStack {
+                HStack {
+                    Spacer()
+                    Button {
+                        onDismiss()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title)
+                            .foregroundStyle(.white.opacity(0.7))
+                            .padding(20)
+                    }
+                }
+                Spacer()
+
+                // Sayfa göstergesi
+                Text("\(currentIndex + 1) / \(images.count)")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.white.opacity(0.6))
+                    .padding(.bottom, 50)
+            }
+        }
+        .onAppear { currentIndex = initialIndex }
+        .preferredColorScheme(.dark)
     }
 }

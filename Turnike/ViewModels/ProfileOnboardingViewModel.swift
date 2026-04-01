@@ -280,13 +280,8 @@ final class ProfileOnboardingViewModel {
     func loadPhoto(from item: PhotosPickerItem, at index: Int) async {
         guard let data = try? await item.loadTransferable(type: Data.self),
               let image = UIImage(data: data) else { return }
-        // Dikey veya kare fotoğrafları direkt ekle, yatay olanları crop'a gönder
-        if image.size.height >= image.size.width {
-            addPhoto(image, at: index)
-        } else {
-            imageForCropping = image
-            cropTargetIndex = index
-        }
+        imageForCropping = image
+        cropTargetIndex = index
     }
 
     // MARK: - Interests

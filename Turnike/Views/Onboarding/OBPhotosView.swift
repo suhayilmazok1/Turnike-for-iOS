@@ -178,7 +178,7 @@ struct ImageCropView: View {
                             .gesture(
                                 MagnifyGesture()
                                     .onChanged { value in
-                                        scale = max(1.0, lastScale * value.magnification)
+                                        scale = max(0.5, lastScale * value.magnification)
                                     }
                                     .onEnded { _ in
                                         lastScale = scale
@@ -192,6 +192,23 @@ struct ImageCropView: View {
                         cropGrid(cropWidth: cropWidth, cropHeight: cropHeight)
                     }
                 }
+
+                // "Tamamını Kullan" butonu alt kısımda
+                VStack {
+                    Spacer()
+                    Button {
+                        onCrop(image)
+                        dismiss()
+                    } label: {
+                        Text("Tamam\u{0131}n\u{0131} Kullan")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 12)
+                            .background(Capsule().fill(.white.opacity(0.15)))
+                    }
+                    .padding(.bottom, 40)
+                }
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -204,13 +221,12 @@ struct ImageCropView: View {
                     }
                 }
                 ToolbarItem(placement: .principal) {
-                    Text("Fotoğrafı Ayarla")
+                    Text("Foto\u{011F}raf\u{0131} Ayarla")
                         .font(.headline)
                         .foregroundStyle(.white)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
-                        // Basit crop: şimdilik orjinali gönder (gerçek crop ileride)
                         onCrop(image)
                         dismiss()
                     } label: {
