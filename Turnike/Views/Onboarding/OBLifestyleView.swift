@@ -24,7 +24,7 @@ struct OBLifestyleView: View {
                     .foregroundStyle(.white.opacity(0.5))
                     .padding(.top, 6)
 
-                VStack(spacing: 28) {
+                VStack(alignment: .leading, spacing: 28) {
                     ForEach(Array(lifestyleOptions.enumerated()), id: \.offset) { _, category in
                         chipCategory(
                             title: category.category,

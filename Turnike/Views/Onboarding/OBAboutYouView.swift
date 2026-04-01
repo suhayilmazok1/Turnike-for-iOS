@@ -19,7 +19,7 @@ struct OBAboutYouView: View {
                     .foregroundStyle(.white.opacity(0.5))
                     .padding(.top, 6)
 
-                VStack(spacing: 28) {
+                VStack(alignment: .leading, spacing: 28) {
                     ForEach(Array(aboutYouOptions.enumerated()), id: \.offset) { _, category in
                         chipCategory(
                             title: category.category,
