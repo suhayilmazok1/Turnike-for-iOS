@@ -9,7 +9,11 @@ struct User: Identifiable, Codable, Hashable {
     let id: UUID
     var displayName: String
     var birthDate: Date
+    var phoneNumber: String?
+    var lookingFor: String?
     var bio: String?
+    var lifestyle: LifestyleAnswers?
+    var aboutYou: AboutYouAnswers?
     var photoUrls: [String]?
     var gender: Gender
     var interests: [String]?
@@ -32,8 +36,12 @@ struct User: Identifiable, Codable, Hashable {
         case id
         case displayName = "display_name"
         case birthDate = "birth_date"
+        case phoneNumber = "phone_number"
+        case lookingFor = "looking_for"
         case gender
         case bio
+        case lifestyle
+        case aboutYou = "about_you"
         case interests
         case photoUrls = "photo_urls"
         case prompts
@@ -45,7 +53,11 @@ struct User: Identifiable, Codable, Hashable {
         id: UUID = UUID(),
         displayName: String,
         birthDate: Date,
+        phoneNumber: String? = nil,
+        lookingFor: String? = nil,
         bio: String? = nil,
+        lifestyle: LifestyleAnswers? = nil,
+        aboutYou: AboutYouAnswers? = nil,
         photoUrls: [String]? = nil,
         gender: Gender,
         interests: [String]? = nil,
@@ -56,7 +68,11 @@ struct User: Identifiable, Codable, Hashable {
         self.id = id
         self.displayName = displayName
         self.birthDate = birthDate
+        self.phoneNumber = phoneNumber
+        self.lookingFor = lookingFor
         self.bio = bio
+        self.lifestyle = lifestyle
+        self.aboutYou = aboutYou
         self.photoUrls = photoUrls
         self.gender = gender
         self.interests = interests
@@ -64,6 +80,22 @@ struct User: Identifiable, Codable, Hashable {
         self.privacyMode = privacyMode
         self.createdAt = createdAt
     }
+}
+
+// MARK: - Sub Models
+
+struct LifestyleAnswers: Codable, Hashable {
+    var drinking: String = ""
+    var smoking: String = ""
+    var workout: String = ""
+    var pets: String = ""
+}
+
+struct AboutYouAnswers: Codable, Hashable {
+    var communication: String = ""
+    var loveLanguage: String = ""
+    var education: String = ""
+    var zodiac: String = ""
 }
 
 // MARK: - ProfilePrompt

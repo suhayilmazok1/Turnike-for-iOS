@@ -48,13 +48,6 @@ enum LookingForOption: String, CaseIterable {
 
 // MARK: - Lifestyle Categories
 
-struct LifestyleAnswers {
-    var drinking: String = ""
-    var smoking: String = ""
-    var workout: String = ""
-    var pets: String = ""
-}
-
 let lifestyleOptions: [(category: String, icon: String, key: WritableKeyPath<LifestyleAnswers, String>, options: [String])] = [
     ("Ne sıklıkla içersin?", "🍷", \.drinking,
      ["İçmem", "Nadiren", "Sosyal içici", "Özel günlerde", "Haftasonları", "Çoğu akşam"]),
@@ -67,13 +60,6 @@ let lifestyleOptions: [(category: String, icon: String, key: WritableKeyPath<Lif
 ]
 
 // MARK: - About You Categories
-
-struct AboutYouAnswers {
-    var communication: String = ""
-    var loveLanguage: String = ""
-    var education: String = ""
-    var zodiac: String = ""
-}
 
 let aboutYouOptions: [(category: String, icon: String, key: WritableKeyPath<AboutYouAnswers, String>, options: [String])] = [
     ("İletişim tarzın nedir?", "💬", \.communication,
@@ -288,7 +274,7 @@ final class ProfileOnboardingViewModel {
 
     func toggleInterest(_ interest: String) {
         if selectedInterests.contains(interest) {
-            selectedInterests.remove(interest)
+            selectedInterests.remove(interest) 
         } else if selectedInterests.count < 10 {
             selectedInterests.insert(interest)
         }
@@ -343,11 +329,18 @@ final class ProfileOnboardingViewModel {
                     return
                 }
 
+                let finalPhone = phoneNumber.trimmingCharacters(in: .whitespaces)
+                let finalLookingFor = lookingFor?.rawValue
+
                 let user = User(
                     id: userId,
                     displayName: firstName.trimmingCharacters(in: .whitespaces),
                     birthDate: bd,
+                    phoneNumber: finalPhone.isEmpty ? nil : finalPhone,
+                    lookingFor: finalLookingFor,
                     bio: bio.isEmpty ? nil : bio,
+                    lifestyle: lifestyle,
+                    aboutYou: aboutYou,
                     photoUrls: photoFileNames,
                     gender: selectedGender,
                     interests: Array(selectedInterests),
