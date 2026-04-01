@@ -41,7 +41,10 @@ struct ProfileView: View {
                     VStack(spacing: 20) {
                         profileHeader(user)
                         photosSection(user)
+                        lookingForSection(user)
                         bioSection(user)
+                        lifestyleSection(user)
+                        aboutYouSection(user)
                         promptsSection(user)
                         interestsSection(user)
                         privacySection(user)
@@ -253,6 +256,87 @@ struct ProfileView: View {
                 .padding(16)
                 .glass(color: theme.primaryColor, cornerRadius: 16, opacity: 0.08)
             }
+        }
+    }
+
+    // MARK: - Looking For Section
+    private func lookingForSection(_ user: User) -> some View {
+        Group {
+            if let lookingForRaw = user.lookingFor,
+               let option = LookingForOption(rawValue: lookingForRaw) {
+                VStack(alignment: .leading, spacing: 10) {
+                    sectionHeader("Ne Ar\u{0131}yorum", icon: "magnifyingglass")
+                    HStack(spacing: 8) {
+                        Text(option.emoji)
+                        Text(option.rawValue)
+                            .font(.body.weight(.medium))
+                            .foregroundStyle(.white)
+                    }
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background {
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(.white.opacity(0.05))
+                    }
+                }
+                .padding(16)
+                .glass(color: theme.primaryColor, cornerRadius: 16, opacity: 0.08)
+            }
+        }
+    }
+
+    // MARK: - Lifestyle Section
+    private func lifestyleSection(_ user: User) -> some View {
+        Group {
+            if let lifestyle = user.lifestyle {
+                VStack(alignment: .leading, spacing: 10) {
+                    sectionHeader("Ya\u{015F}am Tarz\u{0131}", icon: "sparkles")
+                    
+                    FlowLayout(spacing: 8) {
+                        if !lifestyle.drinking.isEmpty { profileChip(icon: "\u{1F377}", text: lifestyle.drinking) }
+                        if !lifestyle.smoking.isEmpty { profileChip(icon: "\u{1F6AC}", text: lifestyle.smoking) }
+                        if !lifestyle.workout.isEmpty { profileChip(icon: "\u{1F4AA}", text: lifestyle.workout) }
+                        if !lifestyle.pets.isEmpty { profileChip(icon: "\u{1F43E}", text: lifestyle.pets) }
+                    }
+                }
+                .padding(16)
+                .glass(color: theme.primaryColor, cornerRadius: 16, opacity: 0.08)
+            }
+        }
+    }
+
+    // MARK: - About You Section
+    private func aboutYouSection(_ user: User) -> some View {
+        Group {
+            if let aboutYou = user.aboutYou {
+                VStack(alignment: .leading, spacing: 10) {
+                    sectionHeader("Ki\u{015F}isel", icon: "person.text.rectangle")
+                    
+                    FlowLayout(spacing: 8) {
+                        if !aboutYou.communication.isEmpty { profileChip(icon: "\u{1F4AC}", text: aboutYou.communication) }
+                        if !aboutYou.loveLanguage.isEmpty { profileChip(icon: "\u{2764}\u{FE0F}", text: aboutYou.loveLanguage) }
+                        if !aboutYou.education.isEmpty { profileChip(icon: "\u{1F393}", text: aboutYou.education) }
+                        if !aboutYou.zodiac.isEmpty { profileChip(icon: "\u{2B50}", text: aboutYou.zodiac) }
+                    }
+                }
+                .padding(16)
+                .glass(color: theme.primaryColor, cornerRadius: 16, opacity: 0.08)
+            }
+        }
+    }
+
+    private func profileChip(icon: String, text: String) -> some View {
+        HStack(spacing: 4) {
+            Text(icon)
+            Text(text)
+                .font(.caption.weight(.medium))
+                .foregroundStyle(.white.opacity(0.9))
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background {
+            Capsule()
+                .fill(theme.primaryColor.opacity(0.2))
         }
     }
 
